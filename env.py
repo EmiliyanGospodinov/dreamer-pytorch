@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 GYM_ENVS = [
-    'Pendulum-v0',
+    'Pendulum-v1',
     'MountainCarContinuous-v0',
     'Ant-v2',
     'HalfCheetah-v2',
@@ -21,6 +21,8 @@ CONTROL_SUITE_ENVS = [
     'cartpole-swingup',
     'reacher-easy',
     'finger-spin',
+    'finger-turn_hard',
+    'hopper-hop',
     'cheetah-run',
     'ball_in_cup-catch',
     'walker-walk',
@@ -30,6 +32,8 @@ CONTROL_SUITE_ENVS = [
     'humanoid-walk',
     'fish-swim',
     'acrobot-swingup',
+    'quadruped-walk',
+    'quadruped-run',
 ]
 CONTROL_SUITE_ACTION_REPEATS = {
     'cartpole': 8,
@@ -41,6 +45,8 @@ CONTROL_SUITE_ACTION_REPEATS = {
     'humanoid': 2,
     'fish': 2,
     'acrobot': 4,
+    "quadruped": 2,
+    'hopper': 2,
 }
 
 
