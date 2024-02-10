@@ -1,5 +1,6 @@
 import argparse
 import os
+import random
 
 import numpy as np
 import torch
@@ -113,7 +114,7 @@ parser.add_argument('--top-candidates', type=int, default=100, metavar='K', help
 parser.add_argument('--test', action='store_true', help='Test only')
 parser.add_argument('--test-interval', type=int, default=25, metavar='I', help='Test interval (episodes)')
 parser.add_argument('--test-episodes', type=int, default=10, metavar='E', help='Number of test episodes')
-parser.add_argument('--checkpoint-interval', type=int, default=50, metavar='I', help='Checkpoint interval (episodes)')
+parser.add_argument('--checkpoint-interval', type=int, default=int(1e6), metavar='I', help='Checkpoint interval (episodes)')
 parser.add_argument('--checkpoint-experience', action='store_true', help='Checkpoint experience replay')
 parser.add_argument('--models', type=str, default='', metavar='M', help='Load model checkpoint')
 parser.add_argument('--experience-replay', type=str, default='', metavar='ER', help='Load experience replay')
@@ -130,12 +131,13 @@ for k, v in vars(args).items():
 # Setup
 results_dir = os.path.join('results', '{}_{}'.format(args.env, args.id))
 os.makedirs(results_dir, exist_ok=True)
-np.random.seed(args.seed)
-torch.manual_seed(args.seed)
+seed = random.getrandbits(20)
+np.random.seed(seed)
+torch.manual_seed(seed)
+print(f"Set Numpy and Pytorch random seed: {seed}")
 if torch.cuda.is_available() and not args.disable_cuda:
     print("using CUDA")
     args.device = torch.device('cuda')
-    torch.cuda.manual_seed(args.seed)
 else:
     print("using CPU")
     args.device = torch.device('cpu')
@@ -366,16 +368,20 @@ for episode in tqdm(
                 .sum(dim=2 if args.symbolic_env else (2, 3, 4))
                 .mean(dim=(0, 1))
             )
+            # print(f"WORLD MODEL LOSS IS LOGPROB_LOSS")
         else:
+            # print(f"WORLD MODEL LOSS IS MSE_LOSS")
             observation_loss = (
                 F.mse_loss(bottle(observation_model, (beliefs, posterior_states)), observations[1:], reduction='none')
                 .sum(dim=2 if args.symbolic_env else (2, 3, 4))
                 .mean(dim=(0, 1))
             )
         if args.worldmodel_LogProbLoss:
+            # print(f"REWARD MODEL LOSS IS LOGPROB_LOSS")
             reward_dist = Normal(bottle(reward_model, (beliefs, posterior_states)), 1)
             reward_loss = -reward_dist.log_prob(rewards[:-1]).mean(dim=(0, 1))
         else:
+            # print(f"REWARD MODEL LOSS IS MSE_LOSS")
             reward_loss = F.mse_loss(
                 bottle(reward_model, (beliefs, posterior_states)), rewards[:-1], reduction='none'
             ).mean(dim=(0, 1))
